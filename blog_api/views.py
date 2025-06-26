@@ -16,10 +16,22 @@ from rest_framework.permissions import IsAuthenticated
 
 
 # Create your views here.
+import django_filters
+from django_filters.rest_framework import DjangoFilterBackend
+class PostFilters(django_filters.FilterSet):
+    created_at__gte = django_filters.DateFilter(field_name ='created_at' ,lookup_expr='gte')
+    created_at__lte = django_filters.DateFilter(field_name = 'created_at' ,lookup_expr='lte')
+    class Meta:
+        model = Post
+        fields = ['author' , 'created_at__gte', 'created_at__lte' ]
+from rest_framework import filters
 
 class PostViewSet(viewsets.ModelViewSet):
     queryset = Post.objects.all()
     serializer_class = PostSerializer
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter]
+    filterset_class = PostFilters  # correct spelling for DRF!
+    search_fields = ['title', 'content']
 
 class CommentViewSet(viewsets.ModelViewSet):
     queryset = Comment.objects.all()
@@ -87,3 +99,4 @@ def post_comments(request, post_id):
             serializer.save(post=post, author=request.user)
             return Response(serializer.data, status=201)
         return Response(serializer.errors, status=400)
+
